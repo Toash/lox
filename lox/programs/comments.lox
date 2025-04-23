@@ -1,0 +1,9 @@
+// these are comments
+// they are ignored by the scanner...
+/*
+    Here is a c-style block comment!
+    Some docstring here........
+    print("hello!");
+*/
+
+
