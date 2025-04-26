@@ -8,6 +8,11 @@ import static lox.TokenType.*;
     recursive descent over tokens and produces AST
 
     AST consists of the objcets that we created to model the AST nodes. 
+
+    Higher precendence are handled deeper in call stack 
+    Lower precendence are handled higher up
+
+    Precendence is enforced by grouping higher precendence operators earlier.
 */
 public class Parser {
     private static class ParseError extends RuntimeException{}
@@ -27,9 +32,21 @@ public class Parser {
         }
     }
 
-    // expression -> equality;
+    // expression -> comma;
     private Expr expression(){
-        return equality();
+        return comma();
+    }
+
+    // comma -> equality("," equality)*;
+    private Expr comma(){
+        Expr expr = equality();
+
+        while (match(COMMA)){
+            Token comma = previous();
+            Expr right = equality();
+            expr = new Expr.Binary(expr,comma,right); 
+        }
+        return expr;
     }
     
     // equality -> comparison (("!=" | "==") comparison)*;
@@ -58,6 +75,7 @@ public class Parser {
         return expr;
     }
 
+    // term -> factor ("-" | "+") factor
     private Expr term(){
         Expr expr = factor();
 
@@ -69,6 +87,8 @@ public class Parser {
 
         return expr;
     }
+
+    // factor -> unary ("/" | "*") unary;
     private Expr factor(){
         Expr expr = unary();
 
@@ -112,9 +132,11 @@ public class Parser {
             return new Expr.Grouping(expr);
         }
 
-        // we have a token that cant start an expression.
+        // unknown token
         throw error(peek(), "Expect expression.");
     }
+
+
 
     // check if current token matches any types
     //      consume if true.
