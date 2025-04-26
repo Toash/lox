@@ -32,7 +32,8 @@ public class AstPrinter implements Expr.Visitor<String>{
         return parenthesize(expr.operator.lexeme,expr.right);
     }
 
-    // group expressions in paranthesis.
+    // calls print method of expressions, and 
+    //      group expressions in paranthesis.
     // makes ordering more explicit.
     private String parenthesize(String name, Expr... exprs){
         StringBuilder builder = new StringBuilder();
