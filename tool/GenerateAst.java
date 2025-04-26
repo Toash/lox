@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 
+// generate Java classes that correspond to nodes in the AST.
 public class GenerateAst{
     public static void main(String[] args) throws IOException{
        if (args.length != 1){
@@ -21,7 +22,6 @@ public class GenerateAst{
        ));
     }
 
-    // defines a nonterminal and the nonterminals that it is made out of.
     private static void defineAst(
         String outputDir, String baseName, List<String> types) 
         throws IOException {
@@ -44,7 +44,7 @@ public class GenerateAst{
 
             // base accept() method
             writer.println();
-            writer.println(" abstract <R> R accept(Visitor<R> visitor);");
+            writer.println("\tabstract <R> R accept(Visitor<R> visitor);");
 
             writer.println("}");
             writer.close();
@@ -53,11 +53,11 @@ public class GenerateAst{
     private static void defineVisitor(
         PrintWriter writer, String baseName,
         List<String> types){
-            writer.println("\t interface Visitor<R> {");
+            writer.println("\tinterface Visitor<R> {");
             
             for (String type: types){
                 String typeName = type.split(":")[0].trim();
-                writer.println("\t\t R visit" + typeName + baseName + "(" +
+                writer.println("\t\tR visit" + typeName + baseName + "(" +
                     typeName + " " + baseName.toLowerCase() + ");");
             }
 
@@ -67,37 +67,37 @@ public class GenerateAst{
     private static void defineType(
         PrintWriter writer, String baseName,
         String className, String fieldList){
-            writer.println("\t static class " + className +
+            writer.println("\tstatic class " + className +
             " extends " + baseName + " {");
 
         // constructor
-        writer.println("\t\t " + className + "(" + fieldList + ") {");
+        writer.println("\t\t" + className + "(" + fieldList + ") {");
 
 
         // initialize fields 
         String[] fields = fieldList.split(", ");
         for (String field : fields){
             String name = field.split(" ")[1];
-            writer.println("\t\t\t this." + name + " = " + name + ";");
+            writer.println("\t\t\tthis." + name + " = " + name + ";");
         }
 
-        writer.println("\t\t }");
+        writer.println("\t\t}");
 
         writer.println();
-        writer.println("\t\t @Override");
-        writer.println("\t\t <R> R accept(Visitor<R> visitor) {");
-        writer.println("\t\t return visitor.visit" + 
+        writer.println("\t\t@Override");
+        writer.println("\t\t<R> R accept(Visitor<R> visitor) {");
+        writer.println("\t\t\treturn visitor.visit" + 
             className + baseName + "(this);");
-        writer.println("\t\t }");
+        writer.println("\t\t}");
 
 
         //fields
         writer.println();
         for (String field : fields) {
-            writer.println("\t\t final " + field + ";");
+            writer.println("\t\tfinal " + field + ";");
         }
 
-        writer.println("\t }");
+        writer.println("\t}");
         writer.println();
     }
 }
