@@ -1,3 +1,2 @@
-lox interpreter
-
-added support for block comments
+lox contains tree-walk interpreter
+- added support for block comments
