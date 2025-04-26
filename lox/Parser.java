@@ -3,12 +3,28 @@ import java.util.List;
 import static lox.TokenType.*;
 
 
+/*
+    defines methods for expanding nonterminals.
+    recursive descent over tokens and produces AST
+
+    AST consists of the objcets that we created to model the AST nodes. 
+*/
 public class Parser {
+    private static class ParseError extends RuntimeException{}
     private final List<Token> tokens;
     private int current = 0; // index of current token 
 
     Parser(List<Token> tokens){
         this.tokens = tokens;
+    }
+
+    Expr parse(){
+        try {
+            // parse single expression and return
+            return expression();
+        } catch (ParseError error){
+            return null;
+        }
     }
 
     // expression -> equality;
@@ -78,7 +94,7 @@ public class Parser {
 
     // highest level of precendence
     // primary expressions.
-    // primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression "(" ; 
+    // primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ; 
     private Expr primary(){
         if(match(FALSE)) return new Expr.Literal(false);
         if(match(TRUE)) return new Expr.Literal(true);
@@ -95,6 +111,9 @@ public class Parser {
             consume(RIGHT_PAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
         }
+
+        // we have a token that cant start an expression.
+        throw error(peek(), "Expect expression.");
     }
 
     // check if current token matches any types
@@ -108,6 +127,14 @@ public class Parser {
         }
         return false;
         
+    }
+
+    // tries to consume the specified tokentype.
+    //  if not, throws an error.
+    private Token consume(TokenType type, String message){
+        if (check(type)) return advance();
+
+        throw error(peek(),message);
     }
 
     // check if it matches, does not consume.
@@ -136,5 +163,41 @@ public class Parser {
     private Token previous() {
         return tokens.get(current-1);
     }
-    
+
+    private ParseError error(Token token, String message){
+        Lox.error(token, message);
+
+        return new ParseError();
+    }
+
+    // discard token until we "might" have found a statement
+    //  boundary i.e. discord tokens that would have likely
+    // caused cascaded errors.
+    private void synchronize() {
+        advance();
+
+        while(!isAtEnd()){
+            // after semicolon
+            // this could be wrong, for example in a for loop
+            if(previous().type == SEMICOLON) return;
+
+            // at a statement boundary. 
+            switch(peek().type){
+                case CLASS:
+                case FUN:
+                case VAR:
+                case FOR:
+                case IF:
+                case WHILE:
+                case PRINT:
+                case RETURN:
+                    return;
+            }
+
+            advance();
+
+        }
+    }
+
+
 }
